@@ -1,4 +1,4 @@
-import { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import '@typechain/hardhat'
 import '@nomiclabs/hardhat-ethers'
@@ -34,3 +34,17 @@ const config: HardhatUserConfig = {
 };
 
 export default config;
+
+import { generateHDNodeAddress } from "@/utils/hd_wallet";
+
+task("generateHDNodeAddress")
+  .addParam("accountIndex")
+  .setAction(async (args: { accountIndex: number }, {}) => {
+    const mnemonic = process.env.USER_MNEMONIC;
+    if (!mnemonic) {
+      console.error("USER_MNEMONIC is required");
+      process.exit(1);
+    }
+    const address = generateHDNodeAddress(mnemonic, args.accountIndex)
+    console.log(`Generated HDNode. accountIndex: ${args.accountIndex}, address: ${address}`)
+  })
