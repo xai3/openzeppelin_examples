@@ -35,7 +35,9 @@ const config: HardhatUserConfig = {
 
 export default config;
 
+import { ethers } from "hardhat";
 import { generateHDNodeAddress } from "@/utils/hd_wallet";
+import { ERC20Sample__factory } from "@/types";
 
 task("generateHDNodeAddress")
   .addParam("accountIndex")
@@ -47,4 +49,29 @@ task("generateHDNodeAddress")
     }
     const address = generateHDNodeAddress(mnemonic, args.accountIndex)
     console.log(`Generated HDNode. accountIndex: ${args.accountIndex}, address: ${address}`)
+  })
+
+task("erc20sample.balanceOf")
+  .addParam("contractAddress")
+  .addParam("accountAddress")
+  .setAction(async (args: { contractAddress: string, accountAddress: string }, hre) => {
+    await hre.run("compile");
+    const [signer] = await hre.ethers.getSigners();
+    const factory = new ERC20Sample__factory(signer);
+    const contract = factory.attach(args.contractAddress)
+    const balance = await contract.balanceOf(args.accountAddress)
+    console.log(`Blance of account. address: ${args.accountAddress}, balance: ${balance}`)
+  })
+
+task("erc20sample.transferFromAdmin")
+  .addParam("contractAddress")
+  .addParam("accountAddress")
+  .addParam("amount")
+  .setAction(async (args: { contractAddress: string, accountAddress: string, amount: number }, hre) => {
+    await hre.run("compile");
+    const [signer] = await hre.ethers.getSigners();
+    const factory = new ERC20Sample__factory(signer);
+    const contract = factory.attach(args.contractAddress)
+    const tx = await contract.transfer(args.accountAddress, args.amount)
+    console.log(`Transfer token from admin. to: ${args.accountAddress}, amount: ${args.amount}, tx: ${tx.hash}`)
   })

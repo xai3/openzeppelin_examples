@@ -20,7 +20,17 @@ npx hardhat typechain
 
 # ERC20Sample
 
+## scripts
+
 ```
 npx hardhat run scripts/erc20sample/balance.ts --network mumbai
 npx hardhat run scripts/erc20sample/deploy.ts --network mumbai
+```
+
+## tasks
+
+```
+npx hardhat generateHDNodeAddress --network mumbai --account-index 0
+npx hardhat erc20sample.transferFromAdmin --network mumbai --contract-address {contract} --account-address {account} --amount 20
+npx hardhat erc20sample.balanceOf --contract-address {contract} --account-address {account}
 ```
