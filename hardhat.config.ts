@@ -35,8 +35,8 @@ const config: HardhatUserConfig = {
 
 export default config;
 
-import { ethers } from "hardhat";
-import { generateHDNodeAddress } from "@/utils/hd_wallet";
+import { ethers, network } from "hardhat";
+import { generateHDNode, generateHDNodeAddress } from "@/utils/hd_wallet";
 import { ERC20Sample__factory } from "@/types";
 
 task("generateHDNodeAddress")
@@ -74,4 +74,25 @@ task("erc20sample.transferFromAdmin")
     const contract = factory.attach(args.contractAddress)
     const tx = await contract.transfer(args.accountAddress, args.amount)
     console.log(`Transfer token from admin. to: ${args.accountAddress}, amount: ${args.amount}, tx: ${tx.hash}`)
+  })
+
+task("erc20sample.transfer")
+  .addParam("contractAddress")
+  .addParam("accountIndexFrom")
+  .addParam("accountIndexTo")
+  .addParam("amount")
+  .setAction(async (args: { contractAddress: string, accountIndexFrom: number, accountIndexTo: number, amount: number }, hre ) => {
+    await hre.run("compile");
+    const mnemonic = process.env.USER_MNEMONIC;
+    if (!mnemonic) {
+      console.error("USER_MNEMONIC is required");
+      process.exit(1);
+    }
+    const addressTo = generateHDNodeAddress(mnemonic, args.accountIndexTo)
+    const provider = hre.ethers.getDefaultProvider(hre.network.config.url)    // TODO: Fix error. Property 'url' does not exist on type 'NetworkConfig'.
+    const walletFrom = new hre.ethers.Wallet(generateHDNode(mnemonic, args.accountIndexFrom), provider)
+    const factory = new ERC20Sample__factory(walletFrom);
+    const contract = factory.attach(args.contractAddress)
+    const tx = await contract.transfer(addressTo, args.amount, { gasLimit: 100000 })    // TODO: Fix gaslimit to appropriate valude.
+    console.log(`Transfer token. from: ${walletFrom.address} to: ${addressTo}, amount: ${args.amount}, tx: ${tx.hash}`)
   })
